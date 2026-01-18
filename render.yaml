@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: qs-tool-api
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_UPLOADS_BUCKET
+        value: uploads
+      - key: SUPABASE_STORAGE_OVERLAYS_BUCKET
+        value: overlays
+      - key: VLM_API_URL
+        sync: false
+      - key: VLM_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://YOUR_VERCEL_APP_URL
+
+  - type: worker
+    name: qs-tool-worker
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python worker.py
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_UPLOADS_BUCKET
+        value: uploads
+      - key: SUPABASE_STORAGE_OVERLAYS_BUCKET
+        value: overlays
+      - key: VLM_API_URL
+        sync: false
+      - key: VLM_API_KEY
+        sync: false
