@@ -21,7 +21,7 @@ services:
       - key: VLM_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://YOUR_VERCEL_APP_URL
+        value: https://qstool-fk042ibwv-gerardozqs-projects.vercel.app/
 
   - type: worker
     name: qs-tool-worker
