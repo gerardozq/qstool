@@ -20,8 +20,10 @@ services:
         sync: false
       - key: VLM_API_KEY
         sync: false
+      - key: VLM_MODEL
+        value: gpt-5.1
       - key: CORS_ORIGINS
-        value: https://qstool-fk042ibwv-gerardozqs-projects.vercel.app/
+        value: https://qstool-fk042ibwv-gerardozqs-projects.vercel.app
 
   - type: worker
     name: qs-tool-worker
@@ -44,3 +46,5 @@ services:
         sync: false
       - key: VLM_API_KEY
         sync: false
+      - key: VLM_MODEL
+        value: gpt-5.1
