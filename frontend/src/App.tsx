@@ -17,6 +17,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const isPdfUrl = (url: string) => url.toLowerCase().includes(".pdf");
+
 
   useEffect(() => {
     let isMounted = true;
@@ -101,7 +103,7 @@ export default function App() {
           <p className="eyebrow">QS Vision</p>
           <h1>Floorplan Symbol Counter</h1>
           <p className="subtitle">
-            Upload a floorplan, define your symbols, and get automated counts with visual overlays.
+            Upload a floorplan, define your symbols, and get automated counts in a button click.
           </p>
         </div>
       </header>
@@ -155,28 +157,28 @@ export default function App() {
               </div>
             </div>
 
-            <div className="field">
-              <span>Tile grid (rows x cols)</span>
-              <div className="tile-grid">
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={tileRows}
-                  onChange={(e) => setTileRows(Number(e.target.value) || 1)}
-                  disabled={mode !== "full"}
-                />
-                <span className="muted">x</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={tileCols}
-                  onChange={(e) => setTileCols(Number(e.target.value) || 1)}
-                  disabled={mode !== "full"}
-                />
+            {mode === "full" && (
+              <div className="field">
+                <span>Tile grid (rows x cols)</span>
+                <div className="tile-grid">
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={tileRows}
+                    onChange={(e) => setTileRows(Number(e.target.value) || 1)}
+                  />
+                  <span className="muted">x</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={tileCols}
+                    onChange={(e) => setTileCols(Number(e.target.value) || 1)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
 
             <button type="submit" disabled={isUploading}>
@@ -233,7 +235,9 @@ export default function App() {
               <div className="modal-content">
                 <div className="meta">
                   {selectedJob.mode && <p>Mode: {selectedJob.mode}</p>}
-                  {selectedJob.tile_rows && selectedJob.tile_cols && (
+                  {selectedJob.mode !== "snippet" &&
+                    selectedJob.tile_rows &&
+                    selectedJob.tile_cols && (
                     <p>
                       Tiles: {selectedJob.tile_rows} x {selectedJob.tile_cols}
                     </p>
@@ -273,11 +277,19 @@ export default function App() {
                   <div>
                     <h4>Input image</h4>
                     {selectedJob.input_url ? (
-                      <img
-                        className="overlay"
-                        src={selectedJob.input_url}
-                        alt="Input drawing"
-                      />
+                      isPdfUrl(selectedJob.input_url) ? (
+                        <iframe
+                          className="overlay"
+                          src={selectedJob.input_url}
+                          title="Input drawing PDF"
+                        />
+                      ) : (
+                        <img
+                          className="overlay"
+                          src={selectedJob.input_url}
+                          alt="Input drawing"
+                        />
+                      )
                     ) : (
                       <p className="muted">Input image not available.</p>
                     )}
