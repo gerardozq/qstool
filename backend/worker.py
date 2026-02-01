@@ -123,15 +123,19 @@ def call_vlm(image_bytes: bytes, symbols: List[bytes]):
         return []
 
     prompt = (
-        "You are an expert quantity surveyor assistant. "
-        "Given a floorplan image and a list of symbol reference images, "
-        "count occurrences of each symbol in the floorplan. "
-        "The symbols in the floorplan could be rotated. "
-        "Return ONLY JSON counts. "
-        "Preferred format: {\"label1\": 3, \"label2\": 0}. "
-        "Use descriptive labels inferred from the symbol images. "
-        "Do NOT use generic labels like 'Symbol 1'. "
-        "If you cannot see images, return an empty JSON object {}."
+        "You are an expert quantity surveyor assistant.\n\n"
+        "Task: Given (1) a floorplan image and (2) symbol reference images with their labels,\n"
+        "count occurrences of EACH reference symbol in the floorplan.\n\n"
+        "Rules:\n"
+        "- The ONLY valid labels are the labels provided with the reference symbols. Do NOT invent or rename labels.\n"
+        "- Match symbols by SHAPE/GEOMETRY, not by what the letters might \"mean\".\n"
+        "- Symbols may be rotated (0/90/180/270) and partially occluded by blue pipes; still count if the red symbol geometry matches.\n"
+        "- Ignore all blue lines/pipes: they are not symbols.\n"
+        "- Disambiguation:\n"
+        "  * A \"monitoring valve\" is a gate-valve symbol PLUS a boxed 'M' tag.\n"
+        "  * A \"sub-meter\" is a circle containing a letter (e.g., 'm') as shown in the reference.\n"
+        "Return ONLY a JSON object like: {\"gate valve\": 7, \"sub-meter\": 1, ...}\n"
+        "If a reference symbol does not appear, return 0 for it."
     )
 
     content = [
