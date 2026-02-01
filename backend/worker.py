@@ -34,7 +34,7 @@ def render_pdf_to_images(file_bytes: bytes) -> List[Image.Image]:
         for page_index in range(len(doc)):
             page = doc[page_index]
             try:
-                bitmap = page.render(scale=2)
+                bitmap = page.render(scale=4)
                 images.append(bitmap.to_pil())
             finally:
                 page.close()
