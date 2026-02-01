@@ -119,8 +119,11 @@ def call_vlm(image_bytes: bytes, symbols: List[bytes]):
     Expected return format:
     [{"label": "door", "bbox": [x, y, w, h], "confidence": 0.92}]
     """
-    if not VLM_API_KEY:
-        return []
+    # VLM disabled: return empty counts without calling the API.
+    return {}
+
+    # if not VLM_API_KEY:
+    #     return []
 
     prompt = (
         "You are an expert quantity surveyor assistant. "
