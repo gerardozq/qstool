@@ -88,6 +88,12 @@ def _parse_counts(text: str) -> Dict[str, int]:
         return {}
 
 
+def normalize_label(label: str) -> str:
+    normalized = (label or "").strip().lower().replace("_", " ")
+    normalized = " ".join(normalized.split())
+    return normalized
+
+
 def load_image(file_bytes: bytes) -> Image.Image:
     return Image.open(io.BytesIO(file_bytes)).convert("RGB")
 
@@ -248,7 +254,8 @@ def process_job(job: dict):
             for future in as_completed(futures):
                 page_counts = future.result()
                 for label, count in page_counts.items():
-                    merged_counts[label] = merged_counts.get(label, 0) + int(count)
+                    normalized_label = normalize_label(label)
+                    merged_counts[normalized_label] = merged_counts.get(normalized_label, 0) + int(count)
 
     supabase.table("symbols").delete().eq("job_id", job_id).execute()
     if merged_counts:
