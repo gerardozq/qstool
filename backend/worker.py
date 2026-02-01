@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple
 
@@ -220,27 +221,34 @@ def process_job(job: dict):
     tile_cols = max(1, min(20, int(job.get("tile_cols") or 10)))
 
     merged_counts: Dict[str, int] = {}
-    for page_index, page_image in enumerate(pages):
-        tiles = (
-            split_image_grid(page_image, tile_rows, tile_cols)
-            if mode == "full"
-            else [(0, 0, page_image)]
-        )
-        for row, col, tile in tiles:
-            buffer = io.BytesIO()
-            tile.save(buffer, format="PNG")
-            tile_bytes = buffer.getvalue()
-
-            tile_path = f"{job_id}/tiles/page-{page_index}_r{row}_c{col}.png"
-            supabase.storage.from_(SUPABASE_STORAGE_UPLOADS_BUCKET).upload(
-                tile_path,
-                tile_bytes,
-                {"content-type": "image/png"},
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for page_index, page_image in enumerate(pages):
+            tiles = (
+                split_image_grid(page_image, tile_rows, tile_cols)
+                if mode == "full"
+                else [(0, 0, page_image)]
             )
+            total_tiles = len(tiles)
+            futures = []
+            for tile_index, (row, col, tile) in enumerate(tiles, start=1):
+                print(f"Processing tile {tile_index}/{total_tiles} (page {page_index})")
+                buffer = io.BytesIO()
+                tile.save(buffer, format="PNG")
+                tile_bytes = buffer.getvalue()
 
-            page_counts = call_vlm(tile_bytes, symbol_items)
-            for label, count in page_counts.items():
-                merged_counts[label] = merged_counts.get(label, 0) + int(count)
+                tile_path = f"{job_id}/tiles/page-{page_index}_r{row}_c{col}.png"
+                supabase.storage.from_(SUPABASE_STORAGE_UPLOADS_BUCKET).upload(
+                    tile_path,
+                    tile_bytes,
+                    {"content-type": "image/png"},
+                )
+
+                futures.append(executor.submit(call_vlm, tile_bytes, symbol_items))
+
+            for future in as_completed(futures):
+                page_counts = future.result()
+                for label, count in page_counts.items():
+                    merged_counts[label] = merged_counts.get(label, 0) + int(count)
 
     supabase.table("symbols").delete().eq("job_id", job_id).execute()
     if merged_counts:
